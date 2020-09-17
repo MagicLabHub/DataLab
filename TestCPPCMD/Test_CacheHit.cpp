@@ -2,6 +2,7 @@
 //
 // Tool info: Intel tool:mlc-intel Intel-PCM
 #include "CPUInfo/CPUInfo.h"
+
 //#include "types.h"
 //
 //void loadSMR_Old()
@@ -88,10 +89,15 @@ UINT64 getL2CacheHits(const PerfInfo & before, const PerfInfo & after){
 void loadMSR()
 {
 	CPUInfo* cpuInfo = CPUInfo::getInstance();
-
+	char strTime[80];
+	SYSTEMTIME Time = { 0 };
+	char sFileName[80];
+	::GetLocalTime(&Time);
 	PerfInfo before,after;
 	for (int i=0;i<1000;++i){
 		std::cout << std::flush;
+		::GetLocalTime(&Time);
+		sprintf(strTime,"%.4u-%.2u-%.2u %.2u:%.2u:%.2u.%.3u",Time.wYear, Time.wMonth, Time.wDay,Time.wHour, Time.wMinute, Time.wSecond,Time.wMilliseconds);
 		before = cpuInfo->getPerfInfo();
 		int curTemp = (cpuInfo->readMSR(MSR_IA32_THERM_STATUS)& 0x7f0000) >> 16;
 		//std::cout << "CPU Temperature  :" << std::dec <<curTemp<< "¡æ\n";
@@ -110,7 +116,11 @@ void loadMSR()
 
 		Sleep(1000);
 		after = cpuInfo->getPerfInfo();
-		std::cout << "L3HitRatio:	" <<getL3CacheHitRatio(before,after)<<" L2HitRatio:	" <<getL2CacheHitRatio(before,after)<< " CPU Temperature  :" << curTemp<<"\n";
+		double dL3HitRate = getL3CacheHitRatio(before,after)*100;
+		double dL2HitRate = getL2CacheHitRatio(before,after)*100;
+		UINT32 Temperature = curTemp;
+		printf("%s L3Hit(%.2f%%) L2Hit(%.2f%%) %d¡æ\n",
+			strTime,dL3HitRate,dL2HitRate,Temperature);
 	}
 
 }
