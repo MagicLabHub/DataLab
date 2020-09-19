@@ -33,12 +33,24 @@
     <ClCompile Include="CPUInfo\CPUInfo.cpp">
       <Filter>CPUInfo</Filter>
     </ClCompile>
+    <ClCompile Include="CPUInfo\ThreadGroupTempAffinity.cpp">
+      <Filter>CPUInfo</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUInfo\TestString.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="types.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="CPUInfo\CPUInfo.h">
+      <Filter>CPUInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUInfo\ThreadGroupTempAffinity.h">
+      <Filter>CPUInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUInfo\types.h">
+      <Filter>CPUInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUInfo\MSR.h">
       <Filter>CPUInfo</Filter>
     </ClInclude>
   </ItemGroup>

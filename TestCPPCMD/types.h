@@ -32,7 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <windows.h>
 #endif
 
-namespace pcm {
+namespace WINCPUInfo {
 
 typedef unsigned long long uint64;
 typedef signed long long int64;

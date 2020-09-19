@@ -2,7 +2,7 @@
 //
 // Tool info: Intel tool:mlc-intel Intel-PCM
 #include "CPUInfo/CPUInfo.h"
-
+using namespace WINCPUInfo;
 //#include "types.h"
 //
 //void loadSMR_Old()
@@ -86,6 +86,14 @@ UINT64 getL2CacheHits(const PerfInfo & before, const PerfInfo & after){
     return after.L2Hit - before.L2Hit;
 }
 
+double getIPC(const PerfInfo & before, const PerfInfo & after) // instructions per cycle
+{
+	UINT64 clocks = after.CpuClkUnhaltedThread - before.CpuClkUnhaltedThread;
+	if (clocks != 0)
+		return double(after.InstRetiredAny - before.InstRetiredAny) / double(clocks);
+	return -1;
+}
+
 void loadMSR()
 {
 	CPUInfo* cpuInfo = CPUInfo::getInstance();
@@ -94,40 +102,37 @@ void loadMSR()
 	char sFileName[80];
 	::GetLocalTime(&Time);
 	PerfInfo before,after;
+	std::vector<PerfInfo>vBeforeInfo,vAfterInfo;
+	vBeforeInfo	= cpuInfo->getPerfInfo();
+	
 	for (int i=0;i<1000;++i){
+
+		vAfterInfo	= cpuInfo->getPerfInfo();
 		std::cout << std::flush;
 		::GetLocalTime(&Time);
 		sprintf(strTime,"%.4u-%.2u-%.2u %.2u:%.2u:%.2u.%.3u",Time.wYear, Time.wMonth, Time.wDay,Time.wHour, Time.wMinute, Time.wSecond,Time.wMilliseconds);
-		before = cpuInfo->getPerfInfo();
-		int curTemp = (cpuInfo->readMSR(MSR_IA32_THERM_STATUS)& 0x7f0000) >> 16;
-		//std::cout << "CPU Temperature  :" << std::dec <<curTemp<< "℃\n";
-		UINT64 cInstRetiredAny = cpuInfo->readMSR(INST_RETIRED_ANY_ADDR);
-		UINT64 cCpuClkUnhaltedThread = cpuInfo->readMSR(CPU_CLK_UNHALTED_THREAD_ADDR);
-		UINT64 cCpuClkUnhaltedRef = cpuInfo->readMSR(CPU_CLK_UNHALTED_REF_ADDR);
-		
+		printf("%s \n",strTime);
+		for (int iCore=0;iCore<vAfterInfo.size();++iCore){
+			before	= vBeforeInfo[iCore];
+			after	= vAfterInfo[iCore];
 
-		UINT64 cCustomEvents[PERF_MAX_CUSTOM_COUNTERS] = {0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL };
-		for (int i = 0; i < 4; ++i)
-		{
-			cCustomEvents[i] = cpuInfo->readMSR(IA32_PMC0 + i);
+			double dL3HitRate	= getL3CacheHitRatio(before,after)*100;
+			double dL2HitRate	= getL2CacheHitRatio(before,after)*100;
+			double dIPC			= getIPC(before,after);
+			UINT32 Temperature	= after.curTemp;
+			printf(" %d L3Hit(%.2f%%) L2Hit(%.2f%%) IPC(%.2f) %d℃\n",
+				iCore,dL3HitRate,dL2HitRate,dIPC,Temperature);
 		}
-		UINT64 cSMICount = cpuInfo->readMSR(MSR_SMI_COUNT);//System Management Interrupts (SMIs)系统管理中断
-		
-
+		vBeforeInfo	= vAfterInfo;
 		Sleep(1000);
-		after = cpuInfo->getPerfInfo();
-		double dL3HitRate = getL3CacheHitRatio(before,after)*100;
-		double dL2HitRate = getL2CacheHitRatio(before,after)*100;
-		UINT32 Temperature = curTemp;
-		printf("%s L3Hit(%.2f%%) L2Hit(%.2f%%) %d℃\n",
-			strTime,dL3HitRate,dL2HitRate,Temperature);
 	}
 
 }
 
 
-int main()
+int tmain()
 {
+
 	//cache_line_size();
 	//getSystemInfo();
 	loadMSR();
